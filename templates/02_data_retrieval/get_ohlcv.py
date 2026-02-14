@@ -7,7 +7,21 @@ Retrieves OHLCV history and real-time tick data.
 import MetaTrader5 as mt5
 import pandas as pd
 from datetime import datetime
-from typing import Optional, Dict, Union
+from typing import Optional, TypedDict
+
+
+class LatestTick(TypedDict):
+    """Structured return type for :func:`get_latest_tick`.
+
+    Note: Values are derived from `mt5.symbol_info_tick`.
+    """
+
+    time: datetime
+    bid: float
+    ask: float
+    spread: float
+    volume: float
+    flags: int
 
 def get_ohlcv(
     symbol: str,
@@ -50,7 +64,7 @@ def get_ohlcv(
     # Return standard columns
     return df[['open', 'high', 'low', 'close', 'tick_volume']]
 
-def get_latest_tick(symbol: str) -> Optional[Dict[str, Union[datetime, float, int]]]:
+def get_latest_tick(symbol: str) -> Optional[LatestTick]:
     """
     Get the most recent tick for a symbol.
     
