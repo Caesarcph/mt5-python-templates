@@ -6,7 +6,7 @@ Handles market orders and closing positions with basic error checking.
 
 import MetaTrader5 as mt5
 from dataclasses import dataclass
-from typing import Optional
+from typing import Literal, Optional, Tuple
 
 @dataclass
 class TradeResult:
@@ -15,12 +15,33 @@ class TradeResult:
     price: float = 0.0
     message: str = ""
 
+
+def _calculate_sl_tp(
+    direction: Literal["BUY", "SELL"],
+    price: float,
+    point: float,
+    sl_pips: Optional[float],
+    tp_pips: Optional[float],
+) -> Tuple[float, float]:
+    """Calculate SL/TP prices based on order direction."""
+    pip_value = point * 10
+
+    if direction == "BUY":
+        sl = price - sl_pips * pip_value if sl_pips else 0.0
+        tp = price + tp_pips * pip_value if tp_pips else 0.0
+    else:
+        sl = price + sl_pips * pip_value if sl_pips else 0.0
+        tp = price - tp_pips * pip_value if tp_pips else 0.0
+
+    return sl, tp
+
+
 def market_order(
     symbol: str,
-    order_type: str,  # "BUY" or "SELL"
+    order_type: Literal["BUY", "SELL"],
     volume: float,
-    sl_pips: float = None,
-    tp_pips: float = None,
+    sl_pips: Optional[float] = None,
+    tp_pips: Optional[float] = None,
     comment: str = "",
     magic: int = 0
 ) -> TradeResult:
@@ -55,18 +76,17 @@ def market_order(
     point = symbol_info.point
     
     # Determine order type and price
-    if order_type.upper() == "BUY":
+    normalized_type = order_type.upper()
+    if normalized_type == "BUY":
         mt5_type = mt5.ORDER_TYPE_BUY
         price = tick.ask
-        sl = price - sl_pips * point * 10 if sl_pips else 0.0
-        tp = price + tp_pips * point * 10 if tp_pips else 0.0
-    elif order_type.upper() == "SELL":
+    elif normalized_type == "SELL":
         mt5_type = mt5.ORDER_TYPE_SELL
         price = tick.bid
-        sl = price + sl_pips * point * 10 if sl_pips else 0.0
-        tp = price - tp_pips * point * 10 if tp_pips else 0.0
     else:
         return TradeResult(False, message=f"Invalid order type: {order_type}")
+
+    sl, tp = _calculate_sl_tp(normalized_type, price, point, sl_pips, tp_pips)
     
     request = {
         "action": mt5.TRADE_ACTION_DEAL,
