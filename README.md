@@ -467,7 +467,7 @@ if __name__ == "__main__":
 
 ### Week 2: Advanced Templates
 - [ ] Risk management module
-- [ ] Complete strategy examples
+- [x] Complete strategy examples
 - [ ] Custom indicator templates
 - [ ] Scheduled automation
 
