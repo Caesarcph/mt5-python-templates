@@ -469,7 +469,7 @@ if __name__ == "__main__":
 - [ ] Risk management module
 - [x] Complete strategy examples
 - [x] Custom indicator templates
-- [ ] Scheduled automation
+- [x] Scheduled automation
 
 ### Week 3: Integration & Polish
 - [ ] External API bridges
