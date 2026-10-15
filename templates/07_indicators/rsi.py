@@ -25,11 +25,12 @@ def calculate_rsi(close: pd.Series, period: int = 14) -> pd.Series:
     avg_gain = gain.ewm(alpha=1 / period, adjust=False, min_periods=period).mean()
     avg_loss = loss.ewm(alpha=1 / period, adjust=False, min_periods=period).mean()
 
-    rs = avg_gain / avg_loss.replace(0, pd.NA)
+    rs = avg_gain / avg_loss
     rsi = 100 - (100 / (1 + rs))
 
-    # Flat or no-loss windows should evaluate to 100.
-    return rsi.fillna(100)
+    # Windows with no losses (including flat ones) evaluate to 100. The first
+    # ``period`` rows stay NaN because there isn't enough data yet.
+    return rsi.mask(avg_loss.eq(0) & avg_gain.notna(), 100.0)
 
 
 def add_rsi_column(df: pd.DataFrame, period: int = 14) -> pd.DataFrame:
